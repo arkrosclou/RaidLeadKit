@@ -100,6 +100,21 @@ local function ownerToken(unit)
 end
 RLK.ownerToken = ownerToken
 
+-- The player's own talents, read straight from the game: talent name -> rank,
+-- active spec only. LibGroupTalents lags behind a spec switch of our own (it
+-- reads the talents as the switch is cast, before the game has changed them).
+local myTalents = {}
+
+local function readMyTalents()
+	wipe(myTalents)
+	for tab = 1, GetNumTalentTabs() do
+		for i = 1, GetNumTalents(tab) do
+			local name, _, _, _, rank = GetTalentInfo(tab, i)
+			if name and rank and rank > 0 then myTalents[name] = rank end
+		end
+	end
+end
+
 -- Can this member provide the variant? true, false, or nil for "cannot tell yet".
 local function provides(v, unit)
 	if v.pet then
@@ -110,6 +125,7 @@ local function provides(v, unit)
 		return key == v.pet
 	end
 	if v.talentName then
+		if UnitIsUnit(unit, "player") then return myTalents[v.talentName] ~= nil end
 		-- no spec means the talents have not arrived yet
 		if not LGT:GetUnitTalentSpec(unit) then return nil end
 		return LGT:UnitHasTalent(unit, v.talentName) ~= nil
@@ -176,6 +192,7 @@ function RLK:Refresh()
 	self.dirty = false
 
 	local members = readMembers()
+	readMyTalents()
 	for _, s in ipairs(SECTIONS) do
 		for _, row in ipairs(s.rows) do
 			for _, v in ipairs(row.variants) do
@@ -356,14 +373,52 @@ function RLK:Init()
 	if self.InitConfig then self:InitConfig() end
 end
 
+-- ---------------------------------------------------------------------------
+-- spec switches of other players
+-- ---------------------------------------------------------------------------
+-- Someone casting "Activate Primary/Secondary Spec" gets their talents read
+-- again a few seconds later: by then the game hands out the new spec, and
+-- LibGroupTalents no longer throttles a read it just did for that player.
+local SPEC_SWITCH = {}
+for _, id in ipairs(TALENT_ACTIVATION_SPELLS or {}) do
+	local name = GetSpellInfo(id)
+	if name then SPEC_SWITCH[name] = true end
+end
+local REREAD_AFTER = 6
+local rereads = {} -- guid -> when
+
+local function onUpdate(self)
+	local now = GetTime()
+	for guid, when in pairs(rereads) do
+		if now >= when then
+			rereads[guid] = nil
+			LGT:RefreshTalentsByGUID(guid)
+			RLK:MarkDirty()
+		end
+	end
+	if not next(rereads) then self:SetScript("OnUpdate", nil) end
+end
+
 local driver = CreateFrame("Frame")
 driver:RegisterEvent("PLAYER_LOGIN")
-driver:SetScript("OnEvent", function(self, event)
+driver:SetScript("OnEvent", function(self, event, unit, spell)
 	if event == "PLAYER_LOGIN" then
 		RLK:Init()
 		self:RegisterEvent("RAID_ROSTER_UPDATE")
 		self:RegisterEvent("PARTY_MEMBERS_CHANGED")
 		self:RegisterEvent("UNIT_PET")
+		self:RegisterEvent("PLAYER_TALENT_UPDATE")
+		self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+		self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+		if not SPEC_SWITCH[spell] or UnitIsUnit(unit, "player") then return end
+		if not (unit:match("^raid%d+$") or unit:match("^party%d+$")) then return end
+		local guid = UnitGUID(unit)
+		if guid then
+			rereads[guid] = GetTime() + REREAD_AFTER
+			self:SetScript("OnUpdate", onUpdate)
+		end
+		return
 	end
 	RLK:MarkDirty()
 end)
