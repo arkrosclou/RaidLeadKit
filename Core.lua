@@ -22,6 +22,7 @@ RLK.defaults = {
 	buttonSize = 32, -- the button
 	iconSize = 24,   -- the icons in the panel
 	rows = 12,        -- rows per column before the next column starts
+	lootWarning = true, -- warn on a boss pull when master loot is not set
 }
 
 function RLK:Print(msg)

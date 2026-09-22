@@ -4,8 +4,8 @@
 
 [![Game Version](https://img.shields.io/badge/wow-3.3.5a-blue.svg)](https://github.com/arkrosclou/RaidLeadKit)
 
-Tools for the raid leader.<br>
-First one: a checklist of every raid buff and debuff - who can bring it, and whether it is up.
+Tools for the raid leader: a checklist of every raid buff and debuff - who can bring it and whether it is up -<br>
+and a reminder when a boss is pulled without master loot.
 
 </div>
 
@@ -36,6 +36,12 @@ and its icons are the classes and specs that can provide it. They do not stack, 
 Talents are read with LibGroupTalents: players running DBM share their talents automatically, the others are
 inspected when they are close.
 
+## Master loot reminder
+
+When you lead the raid and a boss is pulled while the loot method is not **Master Looter**, a raid warning
+shows on your screen with its sound: `Master loot is not set: Group Loot`. Only you see it, once per pull.
+Turn it off in the options or with `/rlk loot`; `/rlk loottest` shows what it looks like.
+
 ## How to install
 
 1. Download the addon: **[RaidLeadKit-master.zip](https://github.com/arkrosclou/RaidLeadKit/archive/refs/heads/master.zip)**.
@@ -61,6 +67,8 @@ The options set the button and icon sizes, how many rows go in a column, and whe
 | `/rlk lock` | lock / unlock the button |
 | `/rlk show`, `/rlk hide` | show / hide the button |
 | `/rlk reset` | move the button back to the center |
+| `/rlk loot` | turn the master loot reminder on / off |
+| `/rlk loottest` | show the master loot reminder once |
 
 ## Problems
 

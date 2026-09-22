@@ -33,12 +33,17 @@ SlashCmdList["RAIDLEADKIT"] = function(msg)
 	elseif cmd == "show" or cmd == "hide" then
 		db.hidden = cmd == "hide"
 		RLK:ApplySettings()
+	elseif cmd == "loot" then
+		db.lootWarning = not db.lootWarning
+		RLK:Print("master loot warning " .. (db.lootWarning and "on" or "off"))
+	elseif cmd == "loottest" then
+		RLK:WarnLoot(true)
 	elseif cmd == "reset" then
 		RLK:ResetPosition()
 		db.hidden = false
 		RLK:ApplySettings()
 	else
-		RLK:Print("commands: config | minor | lock | show | hide | reset")
+		RLK:Print("commands: config | minor | lock | show | hide | reset | loot | loottest")
 	end
 	if RLK.RefreshOptions then RLK:RefreshOptions() end
 end
@@ -111,6 +116,18 @@ function RLK:InitConfig()
 	cb, y = check(panel, y, "Show minor debuffs (cast speed, melee hit, healing, judgements)",
 		function() return db.showMinor end, function(v) db.showMinor = v self:ApplySettings() end)
 	checks[#checks + 1] = cb
+
+	y = header(panel, y - 4, "Raid leader")
+	cb, y = check(panel, y, "Warn me on a boss pull when master loot is not set",
+		function() return db.lootWarning end, function(v) db.lootWarning = v end)
+	checks[#checks + 1] = cb
+	local test = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+	test:SetPoint("TOPLEFT", PAD + 24, y)
+	test:SetWidth(120)
+	test:SetHeight(20)
+	test:SetText("Test the warning")
+	test:SetScript("OnClick", function() self:WarnLoot(true) end)
+	y = y - 26
 
 	-- sliders: label above, value in the label, applied as it moves
 	local sliders = {}

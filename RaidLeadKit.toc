@@ -13,4 +13,5 @@ Libs\LibGroupTalents-1.0.lua
 Data.lua
 Core.lua
 Display.lua
+Loot.lua
 Config.lua
