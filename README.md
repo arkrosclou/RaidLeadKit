@@ -11,6 +11,10 @@ First one: a checklist of every raid buff and debuff - who can bring it, and whe
 
 ## Raid checklist
 
+<img src="docs/panel.png" width="456" alt="The checklist in an ICC raid: buffs, debuffs on the boss, totems, blessings and auras">
+
+*Mockup of an ICC pull: Sunder Armor at 5 stacks, timers on the buffs and debuffs, Mark of the Wild missing
+on 2 players (yellow), Hunter's Mark and Savage Combat possible but not up (red), talents still loading (?).*
 Click the button to open the checklist. Every row is one raid effect (Attack Power, Bleed Damage, Spell Haste...),
 and its icons are the classes and specs that can provide it. They do not stack, so one of them is enough.
 
