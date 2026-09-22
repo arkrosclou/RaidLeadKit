@@ -524,11 +524,8 @@ function RLK:CreateDisplay()
 	b:SetScript("OnClick", function(_, mouse)
 		if mouse == "RightButton" then
 			if RLK.OpenOptions then RLK:OpenOptions() end
-		elseif p:IsShown() then
-			p:Hide()
 		else
-			anchorPanel(b, p)
-			p:Show()
+			RLK:TogglePanel()
 		end
 	end)
 	tinsert(UISpecialFrames, p:GetName())
@@ -550,6 +547,17 @@ function RLK:CreateDisplay()
 	end)
 
 	self:ApplySettings()
+end
+
+-- the button, the key binding and /rlk toggle all come here
+function RLK:TogglePanel()
+	local p = self.panel
+	if p:IsShown() then
+		p:Hide()
+	else
+		anchorPanel(self.button, p)
+		p:Show()
+	end
 end
 
 -- A roster or talent change while the panel is open shows up on the next

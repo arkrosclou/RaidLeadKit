@@ -25,6 +25,10 @@ RLK.defaults = {
 	lootWarning = true, -- warn on a boss pull when master loot is not set
 }
 
+-- names in Esc > Key Bindings (Bindings.xml)
+BINDING_HEADER_RAIDLEADKIT = "|cffff2020Raid|rLeadKit"
+BINDING_NAME_RAIDLEADKIT_TOGGLE = "Open / close the checklist"
+
 function RLK:Print(msg)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffff2020Raid|rLeadKit: " .. tostring(msg))
 end
@@ -350,6 +354,25 @@ function RLK:Init()
 	-- missing when Config.lua was added to the .toc after the client started:
 	-- /reload does not pick up new files, a restart does
 	if self.InitConfig then self:InitConfig() end
+	self:DefaultKey()
+end
+
+-- "]" opens the checklist, set once on the first run and only when the key is
+-- free; after that the key is the player's to change or clear
+local DEFAULT_KEY = "]"
+
+function RLK:DefaultKey()
+	if self.db.defaultKeyDone then return end
+	self.db.defaultKeyDone = true
+	if GetBindingKey("RAIDLEADKIT_TOGGLE") then return end
+	local taken = GetBindingAction(DEFAULT_KEY)
+	if taken and taken ~= "" then
+		self:Print("\"" .. DEFAULT_KEY .. "\" is taken, set a key for the checklist in the options")
+		return
+	end
+	if SetBinding(DEFAULT_KEY, "RAIDLEADKIT_TOGGLE") then
+		SaveBindings(GetCurrentBindingSet())
+	end
 end
 
 local driver = CreateFrame("Frame")

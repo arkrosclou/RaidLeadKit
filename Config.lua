@@ -33,6 +33,8 @@ SlashCmdList["RAIDLEADKIT"] = function(msg)
 	elseif cmd == "show" or cmd == "hide" then
 		db.hidden = cmd == "hide"
 		RLK:ApplySettings()
+	elseif cmd == "toggle" then
+		RLK:TogglePanel()
 	elseif cmd == "loot" then
 		db.lootWarning = not db.lootWarning
 		RLK:Print("master loot warning " .. (db.lootWarning and "on" or "off"))
@@ -43,7 +45,7 @@ SlashCmdList["RAIDLEADKIT"] = function(msg)
 		db.hidden = false
 		RLK:ApplySettings()
 	else
-		RLK:Print("commands: config | minor | lock | show | hide | reset | loot | loottest")
+		RLK:Print("commands: config | toggle | minor | lock | show | hide | reset | loot | loottest")
 	end
 	if RLK.RefreshOptions then RLK:RefreshOptions() end
 end
@@ -116,6 +118,70 @@ function RLK:InitConfig()
 	cb, y = check(panel, y, "Show minor debuffs (cast speed, melee hit, healing, judgements)",
 		function() return db.showMinor end, function(v) db.showMinor = v self:ApplySettings() end)
 	checks[#checks + 1] = cb
+
+	-- the key that opens the checklist: click, then press a key or combination;
+	-- right-click clears it. The same binding shows in Esc > Key Bindings.
+	local BINDING = "RAIDLEADKIT_TOGGLE"
+	local MODIFIERS = { LSHIFT = true, RSHIFT = true, LCTRL = true, RCTRL = true, LALT = true, RALT = true }
+	local keyBtn = CreateFrame("Button", uniqueName("Key"), panel, "UIPanelButtonTemplate")
+	keyBtn:SetPoint("TOPLEFT", PAD, y - 2)
+	keyBtn:SetWidth(220)
+	keyBtn:SetHeight(22)
+	keyBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+	local keyNote = panel:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+	keyNote:SetPoint("LEFT", keyBtn, "RIGHT", 8, 0)
+	keyNote:SetText("right-click clears it")
+
+	local function keyText()
+		local key = GetBindingKey(BINDING)
+		keyBtn:SetText("Checklist key: " .. (key and GetBindingText(key, "KEY_") or "not set"))
+	end
+	local function unbind()
+		local key = GetBindingKey(BINDING)
+		while key do
+			SetBinding(key)
+			key = GetBindingKey(BINDING)
+		end
+	end
+	keyBtn:SetScript("OnClick", function(s, mouse)
+		if InCombatLockdown() then
+			self:Print("key bindings cannot change in combat")
+			return
+		end
+		if mouse == "RightButton" then
+			unbind()
+			SaveBindings(GetCurrentBindingSet())
+			keyText()
+			return
+		end
+		s.waiting = true
+		s:SetText("Press a key (Esc cancels)")
+		s:EnableKeyboard(true)
+	end)
+	keyBtn:SetScript("OnKeyDown", function(s, key)
+		if not s.waiting or MODIFIERS[key] then return end
+		s.waiting = false
+		s:EnableKeyboard(false)
+		if key ~= "ESCAPE" then
+			local combo = (IsAltKeyDown() and "ALT-" or "") .. (IsControlKeyDown() and "CTRL-" or "")
+				.. (IsShiftKeyDown() and "SHIFT-" or "") .. key
+			local before = GetBindingAction(combo)
+			unbind()
+			if SetBinding(combo, BINDING) then
+				SaveBindings(GetCurrentBindingSet())
+				local was = (before and before ~= "" and before ~= BINDING)
+					and (" (it was " .. (_G["BINDING_NAME_" .. before] or before) .. ")") or ""
+				self:Print("checklist key: " .. GetBindingText(combo, "KEY_") .. was)
+			end
+		end
+		keyText()
+	end)
+	keyBtn:SetScript("OnHide", function(s)
+		s.waiting = false
+		s:EnableKeyboard(false)
+	end)
+	keyBtn.refresh = keyText
+	y = y - 30
 
 	y = header(panel, y - 4, "Raid leader")
 	cb, y = check(panel, y, "Warn me on a boss pull when master loot is not set",
@@ -194,6 +260,7 @@ function RLK:InitConfig()
 		for _, c in ipairs(checks) do c:SetChecked(c.get()) end
 		for _, r in ipairs(radios) do r:SetChecked(r.key == db.anchor) end
 		for _, s in ipairs(sliders) do s.refresh() end
+		keyBtn.refresh()
 	end
 	options:SetScript("OnShow", function() self:RefreshOptions() end)
 	InterfaceOptions_AddCategory(options)

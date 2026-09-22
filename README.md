@@ -57,12 +57,14 @@ live in the `WTF` folder, not in the addon.
 
 ## Quick start
 
-Left-click the button for the checklist, right-click for the options, drag it to move it.
+Left-click the button or press **]** for the checklist, right-click for the options, drag it to move it.
+The key can be changed in the options (or in Esc > Key Bindings).
 The options set the button and icon sizes, how many rows go in a column, and where the checklist opens.
 
 | Command | What it does |
 |---|---|
 | `/rlk` | open the options |
+| `/rlk toggle` | open / close the checklist (for a macro) |
 | `/rlk minor` | show / hide the minor debuffs (cast speed, melee hit, healing, judgements) |
 | `/rlk lock` | lock / unlock the button |
 | `/rlk show`, `/rlk hide` | show / hide the button |

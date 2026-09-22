@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="RAIDLEADKIT_TOGGLE" header="RAIDLEADKIT">
+		RaidLeadKit:TogglePanel()
+	</Binding>
+</Bindings>
