@@ -48,10 +48,15 @@ local LGT = LibStub("LibGroupTalents-1.0")
 -- ---------------------------------------------------------------------------
 -- text helpers
 -- ---------------------------------------------------------------------------
+local hexCache = {}
 local function classHex(class)
+	local hex = hexCache[class or ""]
+	if hex then return hex end
 	local c = RAID_CLASS_COLORS[class]
-	if not c then return "|cffffffff" end
-	return string.format("|cff%02x%02x%02x", math.floor(c.r * 255), math.floor(c.g * 255), math.floor(c.b * 255))
+	hex = c and string.format("|cff%02x%02x%02x", math.floor(c.r * 255), math.floor(c.g * 255), math.floor(c.b * 255))
+		or "|cffffffff"
+	hexCache[class or ""] = hex
+	return hex
 end
 
 -- names, each in its class colour; entries are member tables or plain names.
@@ -76,6 +81,14 @@ local function timeText(left)
 	if left >= 3600 then return string.format("%dh", math.floor(left / 3600)) end
 	if left >= 60 then return string.format("%dm", math.floor(left / 60)) end
 	return string.format("%d", math.max(left, 0))
+end
+
+-- one number per distinct text timeText can give, so a timer is only turned
+-- into a string when what it shows changes (once a minute for a long buff)
+local function timeKey(left)
+	if left >= 3600 then return 100000 + math.floor(left / 3600) end
+	if left >= 60 then return 1000 + math.floor(left / 60) end
+	return math.max(math.floor(left), 0)
 end
 
 -- ---------------------------------------------------------------------------
@@ -241,16 +254,28 @@ local function drawCell(cell)
 		end
 	end
 
-	setText(cell.time, v.active and v.expires and timeText(v.expires - GetTime()) or "")
+	local left = v.active and v.expires and v.expires - GetTime()
+	local tk = left and timeKey(left) or false
+	if cell.cTimeKey ~= tk then
+		cell.cTimeKey = tk
+		setText(cell.time, left and timeText(left) or "")
+	end
 
+	-- the corner: how many lack it, the stacks, or "?"; compared as a number
+	-- first so an unchanged count makes no new string
+	local n, r, g, b
 	if look == "partial" then
-		setText(cell.count, tostring(v.row.missing), YELLOW[1], YELLOW[2], YELLOW[3])
+		n, r, g, b = v.row.missing, YELLOW[1], YELLOW[2], YELLOW[3]
 	elseif v.active and v.stacks then
-		setText(cell.count, tostring(v.stacks), 1, 1, 1)
+		n, r, g, b = v.stacks, 1, 1, 1
 	elseif look == "unknown" then
-		setText(cell.count, "?", 0.8, 0.8, 0.8)
+		n, r, g, b = -1, 0.8, 0.8, 0.8
 	else
-		setText(cell.count, "")
+		n = false
+	end
+	if cell.cCount ~= n then
+		cell.cCount = n
+		setText(cell.count, n == -1 and "?" or n and tostring(n) or "", r, g, b)
 	end
 end
 
@@ -442,15 +467,17 @@ function RLK:RefreshTooltip()
 	end
 end
 
+local function drawRow(r)
+	if r:IsShown() then
+		for _, cell in ipairs(r.cells) do drawCell(cell) end
+	end
+end
+
 function RLK:UpdatePanel()
 	local p = self.panel
 	self:Refresh()
 	self:ScanActive()
-	eachRow(p, function(r)
-		if r:IsShown() then
-			for _, cell in ipairs(r.cells) do drawCell(cell) end
-		end
-	end)
+	eachRow(p, drawRow)
 	self:RefreshTooltip()
 	local got, missing = LGT:GetTalentCount()
 	if missing and missing > 0 then

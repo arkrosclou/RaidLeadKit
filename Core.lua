@@ -218,6 +218,7 @@ end
 -- active auras
 -- ---------------------------------------------------------------------------
 local DEBUFF_UNITS = { "target", "focus", "boss1", "boss2", "boss3", "boss4" }
+local scannedEnemies = {} -- guid -> true, reused
 
 -- The class behind an aura's caster, pets counting as their owner; nil when
 -- the caster cannot be seen (out of range, a totem).
@@ -275,10 +276,14 @@ function RLK:ScanActive()
 		end
 	end
 
-	-- debuffs: the first hostile unit in DEBUFF_UNITS order that carries one wins
+	-- debuffs: the first hostile unit in DEBUFF_UNITS order that carries one
+	-- wins; a unit seen under two tokens (the target is boss1) is read once
 	local debuffs = self.variantsByAura.debuff
+	wipe(scannedEnemies)
 	for _, unit in ipairs(DEBUFF_UNITS) do
-		if UnitExists(unit) and UnitCanAttack("player", unit) then
+		local guid = UnitExists(unit) and UnitCanAttack("player", unit) and UnitGUID(unit)
+		if guid and not scannedEnemies[guid] then
+			scannedEnemies[guid] = true
 			local i = 1
 			while true do
 				local name, _, _, count, _, duration, expires, caster = UnitDebuff(unit, i)
