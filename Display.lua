@@ -54,10 +54,15 @@ local function classHex(class)
 	return string.format("|cff%02x%02x%02x", math.floor(c.r * 255), math.floor(c.g * 255), math.floor(c.b * 255))
 end
 
--- names, each in its class colour; entries are member tables or plain names
-local function nameList(list, class)
+-- names, each in its class colour; entries are member tables or plain names.
+-- With limit, the rest is summed up as "+N more".
+local function nameList(list, class, limit)
 	local out = {}
 	for i, e in ipairs(list) do
+		if limit and i > limit then
+			out[#out + 1] = string.format("|cff999999+%d more|r", #list - limit)
+			break
+		end
 		if type(e) == "table" then
 			out[i] = classHex(e.class) .. e.name .. "|r"
 		else
@@ -114,6 +119,11 @@ local function showTooltip(cell)
 		GameTooltip:AddLine("Covered by " .. table.concat(by, ", "), 0.6, 0.6, 0.6)
 	elseif v.state == RLK.IN_RAID then
 		GameTooltip:AddLine("Not up", RED[1], RED[2], RED[3])
+	end
+	-- who carries it, for buffs that are not counted (Vigilance, Inspiration,
+	-- the raid-wide auras); a long list is cut short
+	if not row.count and row.kind == "buff" and v.active and #v.holders > 0 then
+		GameTooltip:AddLine(string.format("On (%d): %s", #v.holders, nameList(v.holders, nil, 10)), 1, 1, 1, true)
 	end
 	if row.count then
 		GameTooltip:AddLine(" ")
