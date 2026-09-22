@@ -1,0 +1,16 @@
+## Interface: 30300
+## Title: |cffff2020Raid|rLeadKit
+## Notes: Tools for the raid leader: which buffs and debuffs the raid can bring, and which are up right now.
+## Author: clou
+## Version: 1.0
+## SavedVariables: RaidLeadKitDB
+
+Libs\LibStub.lua
+Libs\CallbackHandler-1.0.lua
+Libs\LibTalentQuery-1.0.lua
+Libs\LibGroupTalents-1.0.lua
+
+Data.lua
+Core.lua
+Display.lua
+Config.lua

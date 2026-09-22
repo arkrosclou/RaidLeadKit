@@ -1,0 +1,63 @@
+<div align="center">
+
+<img src="docs/title.png" width="440" alt="RaidLeadKit">
+
+[![Game Version](https://img.shields.io/badge/wow-3.3.5a-blue.svg)](https://github.com/arkrosclou/RaidLeadKit)
+
+Tools for the raid leader.<br>
+First one: a checklist of every raid buff and debuff - who can bring it, and whether it is up.
+
+</div>
+
+## Raid checklist
+
+Click the button to open the checklist. Every row is one raid effect (Attack Power, Bleed Damage, Spell Haste...),
+and its icons are the classes and specs that can provide it. They do not stack, so one of them is enough.
+
+| Icon | Means |
+|---|---|
+| colour | up, and on everyone who needs it |
+| colour, **yellow** border | up, but some people lack it - the number says how many |
+| colour, **red** border | not up, although someone in the raid can provide it |
+| faded | another icon in the row already covers it |
+| black and white | nobody in the raid can provide it |
+| black and white, **?** | a player of that class is here, but their talents are not known yet |
+
+- Debuffs only turn red in combat, with an enemy targeted.
+- The number at the top of an icon is the time left; bottom right, the stacks of a debuff (Sunder Armor x5).
+- **Hover** an icon for details: who has the buff, who is missing it, who can provide it.
+- Hold **Ctrl** while hovering to see the game's own tooltip of the spell or talent.
+- Below the rows: shaman totems, paladin blessings and paladin auras, each on its own.
+
+Talents are read with LibGroupTalents: players running DBM share their talents automatically, the others are
+inspected when they are close.
+
+## How to install
+
+1. Download the addon: **[RaidLeadKit-master.zip](https://github.com/arkrosclou/RaidLeadKit/archive/refs/heads/master.zip)**.
+2. Open the zip. Inside is a folder called `RaidLeadKit-master`. Copy it into your addons folder
+   (`Interface/AddOns`) and **rename it to `RaidLeadKit`**. With the `-master` ending the game will not load it.
+3. Start the game. At the character selection screen, click **AddOns** (bottom left) and make sure
+   **RaidLeadKit** is enabled.
+
+## How to update
+
+Download the zip again and replace the `RaidLeadKit` folder with the new one. Your settings are kept: they
+live in the `WTF` folder, not in the addon.
+
+## Quick start
+
+Left-click the button for the checklist, right-click for the options, drag it to move it.
+The options set the button and icon sizes, how many rows go in a column, and where the checklist opens.
+
+| Command | What it does |
+|---|---|
+| `/rlk` | open the options |
+| `/rlk minor` | show / hide the minor debuffs (cast speed, melee hit, healing, judgements) |
+| `/rlk lock` | lock / unlock the button |
+| `/rlk show`, `/rlk hide` | show / hide the button |
+| `/rlk reset` | move the button back to the center |
+
+## Problems
+
+Found a bug or got a Lua error? Please [open an issue](https://github.com/arkrosclou/RaidLeadKit/issues).
