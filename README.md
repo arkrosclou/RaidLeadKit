@@ -61,3 +61,8 @@ The options set the button and icon sizes, how many rows go in a column, and whe
 ## Problems
 
 Found a bug or got a Lua error? Please [open an issue](https://github.com/arkrosclou/RaidLeadKit/issues).
+
+## License
+
+GPL v3, see [LICENSE](LICENSE). The bundled libraries in `Libs/` keep their own licenses and authors:
+LibGroupTalents-1.0 (GPL v3), LibTalentQuery-1.0 (LGPL v2.1), LibStub and CallbackHandler-1.0 (public domain / BSD).
