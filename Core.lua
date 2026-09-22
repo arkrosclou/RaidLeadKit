@@ -315,8 +315,10 @@ function RLK:ScanActive()
 		end
 	end
 
-	-- a missing debuff only matters with an enemy to put it on
-	self.fighting = UnitAffectingCombat("player") and UnitExists("target")
+	-- A buff that comes from a proc or a cooldown is only missing in a fight;
+	-- a debuff also needs an enemy to put it on.
+	self.inCombat = UnitAffectingCombat("player")
+	self.fighting = self.inCombat and UnitExists("target")
 		and UnitCanAttack("player", "target") and not UnitIsDead("target")
 end
 

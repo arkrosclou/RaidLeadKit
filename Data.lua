@@ -17,9 +17,11 @@
 	  audience  who the count is about: "mana" (mana users) or "physical"
 	            (melee, tanks, hunters); everyone when not set
 	  minor     hidden unless turned on
-	Variant flag:
+	Variant flags:
 	  optional  a situational pick (resistances, Grounding, Crusader Aura):
 	            never flagged as missing
+	  combat    only happens in a fight (a proc off a crit or a cast, or a
+	            cooldown): not flagged as missing out of combat
 
 	All ids were checked against the WotLK spell database. Auras are matched by
 	name, so one id covers every rank. ]]
@@ -95,7 +97,7 @@ RLK.BUFFS = {
 		{ spell = 51466, class = "SHAMAN", talent = 51466, auras = { 51470 } },        -- Elemental Oath
 	}},
 	{ name = "Spell Power", variants = {
-		{ spell = 47236, class = "WARLOCK", talent = 47236, auras = { 48090 } },       -- Demonic Pact
+		{ spell = 47236, combat = true, class = "WARLOCK", talent = 47236, auras = { 48090 } },       -- Demonic Pact
 		{ spell = 57722, class = "SHAMAN", talent = 30706, auras = { 57658 } },        -- Totem of Wrath
 		{ spell = 58656, class = "SHAMAN", auras = { 58656 } },                        -- Flametongue Totem
 	}},
@@ -106,7 +108,7 @@ RLK.BUFFS = {
 	}},
 	{ name = "Damage Taken -3%", variants = {
 		{ spell = 20911, class = "PALADIN", talent = 20911, auras = { 20911, 25899 } }, -- Blessing of Sanctuary
-		{ spell = 57470, class = "PRIEST", talent = 57470, auras = { 63944 } },        -- Renewed Hope
+		{ spell = 57470, combat = true, class = "PRIEST", talent = 57470, auras = { 63944 } },        -- Renewed Hope
 		{ spell = 50720, class = "WARRIOR", talent = 50720, auras = { 50720 } },       -- Vigilance
 	}},
 	{ name = "Healing Received +6%", variants = {
@@ -114,8 +116,8 @@ RLK.BUFFS = {
 		{ spell = 33891, class = "DRUID", talent = 33891, auras = { 34123 } },         -- Tree of Life
 	}},
 	{ name = "Armor +25% (after a crit heal)", variants = {
-		{ spell = 14892, class = "PRIEST", talent = 14892, auras = { 15363 } },        -- Inspiration
-		{ spell = 16176, class = "SHAMAN", talent = 16176, auras = { 16237 } },        -- Ancestral Healing -> Ancestral Fortitude
+		{ spell = 14892, combat = true, class = "PRIEST", talent = 14892, auras = { 15363 } },        -- Inspiration
+		{ spell = 16176, combat = true, class = "SHAMAN", talent = 16176, auras = { 16237 } },        -- Ancestral Healing -> Ancestral Fortitude
 	}},
 	{ name = "Armor", variants = {
 		{ spell = 48942, class = "PALADIN", auras = { 48942 } },                       -- Devotion Aura
@@ -126,14 +128,14 @@ RLK.BUFFS = {
 		{ spell = 58774, class = "SHAMAN", auras = { 58777 } },                        -- Mana Spring Totem
 	}},
 	{ name = "Replenishment", variants = {                                             -- one aura for all, told apart by its caster
-		{ spell = 31878, class = "PALADIN", talent = 31878, auras = { 57669 } },       -- Judgements of the Wise
-		{ spell = 34914, class = "PRIEST", talent = 34914, auras = { 57669 } },        -- Vampiric Touch
-		{ spell = 53290, class = "HUNTER", talent = 53290, auras = { 57669 } },        -- Hunting Party
-		{ spell = 54117, class = "WARLOCK", talent = 54117, auras = { 57669 } },       -- Improved Soul Leech
-		{ spell = 44557, class = "MAGE", talent = 44557, auras = { 57669 } },          -- Enduring Winter
+		{ spell = 31878, combat = true, class = "PALADIN", talent = 31878, auras = { 57669 } },       -- Judgements of the Wise
+		{ spell = 34914, combat = true, class = "PRIEST", talent = 34914, auras = { 57669 } },        -- Vampiric Touch
+		{ spell = 53290, combat = true, class = "HUNTER", talent = 53290, auras = { 57669 } },        -- Hunting Party
+		{ spell = 54117, combat = true, class = "WARLOCK", talent = 54117, auras = { 57669 } },       -- Improved Soul Leech
+		{ spell = 44557, combat = true, class = "MAGE", talent = 44557, auras = { 57669 } },          -- Enduring Winter
 	}},
 	{ name = "Heroism", variants = {
-		{ spell = 32182, hordeSpell = 2825, class = "SHAMAN", auras = { 32182, 2825 } }, -- Heroism / Bloodlust
+		{ spell = 32182, hordeSpell = 2825, combat = true, class = "SHAMAN", auras = { 32182, 2825 } }, -- Heroism / Bloodlust
 	}},
 }
 

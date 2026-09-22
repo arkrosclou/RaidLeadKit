@@ -12,8 +12,9 @@
 	  colour, yellow border           up, but some who want it lack it; the
 	                                  corner says how many
 	  colour, red border              not up, though someone here can provide
-	                                  it (debuffs: only in a fight, with an
-	                                  enemy targeted)
+	                                  it (in a fight only, for a debuff - with
+	                                  an enemy targeted - or a buff that comes
+	                                  from a proc or a cooldown)
 	  faded                           another variant of the row is up, so
 	                                  this one would add nothing
 	  black and white                 nobody here can provide it
@@ -228,9 +229,13 @@ local function lookOf(v)
 	end
 	if row.active then return "faded" end
 	if v.state == RLK.IN_RAID then
-		-- a debuff can only be missing while there is an enemy to put it on;
-		-- a situational pick is never missing
-		if v.optional or (row.kind == "debuff" and not RLK.fighting) then return "ok" end
+		-- Never "missing": a situational pick; a proc or cooldown buff out of
+		-- combat; a debuff without an enemy to put it on.
+		if v.optional
+			or (v.combat and not RLK.inCombat)
+			or (row.kind == "debuff" and not RLK.fighting) then
+			return "ok"
+		end
 		return "missing"
 	end
 	return v.state == RLK.UNKNOWN and "unknown" or "none"
