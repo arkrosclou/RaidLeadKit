@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: |cffff2020Raid|rLeadKit
 ## Notes: Tools for the raid leader: which buffs and debuffs the raid can bring, and which are up right now.
-## Author: clou
+## Author: arkrosclou (Daliaty @ Warmane Lordaeron)
 ## Version: 1.0
 ## SavedVariables: RaidLeadKitDB
 
