@@ -217,9 +217,9 @@ RLK.DEBUFFS = {
 	}},
 }
 
--- Shown again at the bottom, one group per totem element plus the paladin
--- auras: which one is up and how many carry it. Totems and auras reach the
--- caster's party only, so the count shows how well groups are set up.
+-- Shown again at the bottom, one group per totem element: which one is up,
+-- and how many are out of its reach. Totems, like the paladin auras, reach
+-- party and raid members in range.
 RLK.TOTEMS = {
 	{ name = "Earth Totems", count = true, variants = {
 		{ spell = 58643, class = "SHAMAN", auras = { 58646 } },                        -- Strength of Earth Totem
