@@ -119,70 +119,80 @@ function RLK:InitConfig()
 		function() return db.showMinor end, function(v) db.showMinor = v self:ApplySettings() end)
 	checks[#checks + 1] = cb
 
-	-- the key that opens the checklist: click, then press a key or combination;
-	-- right-click clears it. The same binding shows in Esc > Key Bindings.
+	-- Two keys can open the checklist, like any action in Esc > Key Bindings
+	-- (where the same two show): click a button, then press a key or a
+	-- combination; right-click clears it. Two, because the game names a key by
+	-- the character it types: one key is "]" in one layout and "ї" in another.
 	local BINDING = "RAIDLEADKIT_TOGGLE"
 	local MODIFIERS = { LSHIFT = true, RSHIFT = true, LCTRL = true, RCTRL = true, LALT = true, RALT = true }
-	local keyBtn = CreateFrame("Button", uniqueName("Key"), panel, "UIPanelButtonTemplate")
-	keyBtn:SetPoint("TOPLEFT", PAD, y - 2)
-	keyBtn:SetWidth(220)
-	keyBtn:SetHeight(22)
-	keyBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-	local keyNote = panel:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-	keyNote:SetPoint("LEFT", keyBtn, "RIGHT", 8, 0)
-	keyNote:SetText("right-click clears it")
+	local keyButtons = {}
 
-	local function keyText()
-		local key = GetBindingKey(BINDING)
-		keyBtn:SetText("Checklist key: " .. (key and GetBindingText(key, "KEY_") or "not set"))
+	local function keyOf(slot)
+		return (select(slot, GetBindingKey(BINDING)))
 	end
-	local function unbind()
-		local key = GetBindingKey(BINDING)
-		while key do
-			SetBinding(key)
-			key = GetBindingKey(BINDING)
+	-- Puts key (nil clears) in a slot. The game keeps an action's keys in the
+	-- order they were bound, so all of them are bound again in slot order.
+	local function setSlot(slot, key)
+		local keys = { GetBindingKey(BINDING) }
+		for _, k in ipairs(keys) do SetBinding(k) end
+		keys[slot] = key
+		for i = 1, 2 do
+			if keys[i] and (i == slot or keys[i] ~= key) then SetBinding(keys[i], BINDING) end
+		end
+		SaveBindings(GetCurrentBindingSet())
+	end
+	local function refreshKeys()
+		for slot, b in ipairs(keyButtons) do
+			local key = keyOf(slot)
+			b:SetText("Key " .. slot .. ": " .. (key and GetBindingText(key, "KEY_") or "not set"))
 		end
 	end
-	keyBtn:SetScript("OnClick", function(s, mouse)
-		if InCombatLockdown() then
-			self:Print("key bindings cannot change in combat")
-			return
-		end
-		if mouse == "RightButton" then
-			unbind()
-			SaveBindings(GetCurrentBindingSet())
-			keyText()
-			return
-		end
-		s.waiting = true
-		s:SetText("Press a key (Esc cancels)")
-		s:EnableKeyboard(true)
-	end)
-	keyBtn:SetScript("OnKeyDown", function(s, key)
-		if not s.waiting or MODIFIERS[key] then return end
-		s.waiting = false
-		s:EnableKeyboard(false)
-		if key ~= "ESCAPE" then
-			local combo = (IsAltKeyDown() and "ALT-" or "") .. (IsControlKeyDown() and "CTRL-" or "")
-				.. (IsShiftKeyDown() and "SHIFT-" or "") .. key
-			local before = GetBindingAction(combo)
-			unbind()
-			if SetBinding(combo, BINDING) then
-				SaveBindings(GetCurrentBindingSet())
+
+	for slot = 1, 2 do
+		local b = CreateFrame("Button", uniqueName("Key"), panel, "UIPanelButtonTemplate")
+		b:SetPoint("TOPLEFT", PAD + (slot - 1) * 190, y - 2)
+		b:SetWidth(180)
+		b:SetHeight(22)
+		b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+		b:SetScript("OnClick", function(s, mouse)
+			if InCombatLockdown() then
+				self:Print("key bindings cannot change in combat")
+				return
+			end
+			if mouse == "RightButton" then
+				setSlot(slot, nil)
+				refreshKeys()
+				return
+			end
+			s.waiting = true
+			s:SetText("Press a key (Esc cancels)")
+			s:EnableKeyboard(true)
+		end)
+		b:SetScript("OnKeyDown", function(s, key)
+			if not s.waiting or MODIFIERS[key] then return end
+			s.waiting = false
+			s:EnableKeyboard(false)
+			if key ~= "ESCAPE" then
+				local combo = (IsAltKeyDown() and "ALT-" or "") .. (IsControlKeyDown() and "CTRL-" or "")
+					.. (IsShiftKeyDown() and "SHIFT-" or "") .. key
+				local before = GetBindingAction(combo)
+				setSlot(slot, combo)
 				local was = (before and before ~= "" and before ~= BINDING)
 					and (" (it was " .. (_G["BINDING_NAME_" .. before] or before) .. ")") or ""
-				self:Print("checklist key: " .. GetBindingText(combo, "KEY_") .. was)
+				self:Print("checklist key " .. slot .. ": " .. GetBindingText(combo, "KEY_") .. was)
 			end
-		end
-		keyText()
-	end)
-	keyBtn:SetScript("OnHide", function(s)
-		s.waiting = false
-		s:EnableKeyboard(false)
-	end)
-	keyBtn.refresh = keyText
-	y = y - 30
-
+			refreshKeys()
+		end)
+		b:SetScript("OnHide", function(s)
+			s.waiting = false
+			s:EnableKeyboard(false)
+		end)
+		keyButtons[slot] = b
+	end
+	local keyNote = panel:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+	keyNote:SetPoint("TOPLEFT", PAD, y - 28)
+	keyNote:SetText("Keys that open the checklist; right-click a button to clear it.")
+	y = y - 46
 	y = header(panel, y - 4, "Raid leader")
 	cb, y = check(panel, y, "Warn me on a boss pull when master loot is not set",
 		function() return db.lootWarning end, function(v) db.lootWarning = v end)
@@ -260,7 +270,7 @@ function RLK:InitConfig()
 		for _, c in ipairs(checks) do c:SetChecked(c.get()) end
 		for _, r in ipairs(radios) do r:SetChecked(r.key == db.anchor) end
 		for _, s in ipairs(sliders) do s.refresh() end
-		keyBtn.refresh()
+		refreshKeys()
 	end
 	options:SetScript("OnShow", function() self:RefreshOptions() end)
 	InterfaceOptions_AddCategory(options)

@@ -57,8 +57,9 @@ live in the `WTF` folder, not in the addon.
 
 ## Quick start
 
-Left-click the button or press **]** for the checklist, right-click for the options, drag it to move it.
-The key can be changed in the options (or in Esc > Key Bindings).
+Left-click the button for the checklist, right-click for the options, drag it to move it.
+Up to two keys can open the checklist too - set them in the options or in Esc > Key Bindings (two, so the
+same key works in two keyboard layouts: `]` in English is `ї` in Ukrainian).
 The options set the button and icon sizes, how many rows go in a column, and where the checklist opens.
 
 | Command | What it does |
