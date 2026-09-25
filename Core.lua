@@ -23,11 +23,53 @@ RLK.defaults = {
 	iconSize = 24,   -- the icons in the panel
 	rows = 12,        -- rows per column before the next column starts
 	lootWarning = true, -- warn on a boss pull when master loot is not set
+	-- Marking rules, in order: { key = npc id or name, icon = 1..8, or 0 for
+	-- the first icon no rule asks for by name ("auto") }
+	markRules = {},
 }
 
 -- names in Esc > Key Bindings (Bindings.xml)
 BINDING_HEADER_RAIDLEADKIT = "|cffff2020Raid|rLeadKit"
 BINDING_NAME_RAIDLEADKIT_TOGGLE = "Open / close the checklist"
+
+-- ---------------------------------------------------------------------------
+-- marking rules
+-- ---------------------------------------------------------------------------
+RLK.MARK_ICONS = { -- raid target index -> its texture and English name
+	[1] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1", "Star" },
+	[2] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_2", "Circle" },
+	[3] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_3", "Diamond" },
+	[4] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_4", "Triangle" },
+	[5] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_5", "Moon" },
+	[6] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_6", "Square" },
+	[7] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_7", "Cross" },
+	[8] = { "Interface\\TargetingFrame\\UI-RaidTargetingIcon_8", "Skull" },
+}
+
+-- a rule's key is an npc id (a number) or a name (a string)
+function RLK:RuleKey(text)
+	text = strtrim(text or "")
+	if text == "" then return nil end
+	return tonumber(text) or text
+end
+
+function RLK:FindRule(key)
+	for i, rule in ipairs(self.db.markRules) do
+		if rule.key == key then return i, rule end
+	end
+end
+
+function RLK:AddRule(text, icon)
+	local key = self:RuleKey(text)
+	if not key then return false end
+	if self:FindRule(key) then return false, "already in the list" end
+	table.insert(self.db.markRules, { key = key, icon = icon or 0 })
+	return true
+end
+
+function RLK:RemoveRule(index)
+	table.remove(self.db.markRules, index)
+end
 
 function RLK:Print(msg)
 	DEFAULT_CHAT_FRAME:AddMessage("|cffff2020Raid|rLeadKit: " .. tostring(msg))
