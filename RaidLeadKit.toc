@@ -1,8 +1,8 @@
 ## Interface: 30300
 ## Title: |cffff2020Raid|rLeadKit
-## Notes: Tools for the raid leader: which buffs and debuffs the raid can bring, and which are up right now.
+## Notes: Tools for the raid leader: which buffs and debuffs the raid can bring and which are up right now, marking a pack by pointing at it, and a master loot reminder.
 ## Author: arkrosclou (Daliaty @ Warmane Lordaeron)
-## Version: 1.0
+## Version: 1.1
 ## SavedVariables: RaidLeadKitDB
 
 Libs\LibStub.lua
@@ -14,4 +14,5 @@ Data.lua
 Core.lua
 Display.lua
 Loot.lua
+Marker.lua
 Config.lua

@@ -5,7 +5,7 @@
 [![Game Version](https://img.shields.io/badge/wow-3.3.5a-blue.svg)](https://github.com/arkrosclou/RaidLeadKit)
 
 Tools for the raid leader: a checklist of every raid buff and debuff - who can bring it and whether it is up -<br>
-and a reminder when a boss is pulled without master loot.
+marking a pack by pointing at it, and a reminder when a boss is pulled without master loot.
 
 </div>
 
@@ -42,6 +42,16 @@ When you lead the raid and a boss is pulled while the loot method is not **Maste
 shows on your screen with its sound: `Master loot is not set: Group Loot`. Only you see it, once per pull.
 Turn it off in the options or with `/rlk loot`; `/rlk loottest` shows what it looks like.
 
+## Marking a pack
+
+Hold **left Ctrl + left Shift** and sweep the mouse over a pack: every enemy on your list is marked as it
+passes under the cursor. Add them in the options by name or npc id, and give each one a mark of its own or
+**A** for any mark no other rule asks for. An enemy that was just marked is left alone for ten seconds, so
+going over the same pack again does not shuffle the marks around, and automatic marks never take a mark
+away from an enemy that already has one.
+
+`/rlk clearmarks` clears every raid mark, wherever it is - no need to have anything targeted.
+
 ## How to install
 
 1. Download the addon: **[RaidLeadKit-master.zip](https://github.com/arkrosclou/RaidLeadKit/archive/refs/heads/master.zip)**.
@@ -72,6 +82,7 @@ The options set the button and icon sizes, how many rows go in a column, and whe
 | `/rlk reset` | move the button back to the center |
 | `/rlk loot` | turn the master loot reminder on / off |
 | `/rlk loottest` | show the master loot reminder once |
+| `/rlk clearmarks` | take every raid mark off |
 
 ## Problems
 

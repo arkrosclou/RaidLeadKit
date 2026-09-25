@@ -67,6 +67,18 @@ function RLK:AddRule(text, icon)
 	return true
 end
 
+-- renaming a rule in place; the key stays as it was if the new one is taken
+function RLK:SetRuleKey(index, text)
+	local rule = self.db.markRules[index]
+	if not rule then return false end
+	local key = self:RuleKey(text)
+	if not key then return false end
+	if key == rule.key then return true end
+	if self:FindRule(key) then return false, "already in the list" end
+	rule.key = key
+	return true
+end
+
 function RLK:RemoveRule(index)
 	table.remove(self.db.markRules, index)
 end

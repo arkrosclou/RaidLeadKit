@@ -40,12 +40,15 @@ SlashCmdList["RAIDLEADKIT"] = function(msg)
 		RLK:Print("master loot warning " .. (db.lootWarning and "on" or "off"))
 	elseif cmd == "loottest" then
 		RLK:WarnLoot(true)
+	elseif cmd == "clearmarks" then
+		RLK:ClearMarks()
+		RLK:Print("raid marks cleared")
 	elseif cmd == "reset" then
 		RLK:ResetPosition()
 		db.hidden = false
 		RLK:ApplySettings()
 	else
-		RLK:Print("commands: config | toggle | minor | lock | show | hide | reset | loot | loottest")
+		RLK:Print("commands: config | toggle | minor | lock | show | hide | reset | loot | loottest | clearmarks")
 	end
 	if RLK.RefreshOptions then RLK:RefreshOptions() end
 end
@@ -275,19 +278,27 @@ function RLK:InitConfig()
 	markNote:SetPoint("TOPLEFT", PAD, y)
 	markNote:SetWidth(390)
 	markNote:SetJustifyH("LEFT")
-	markNote:SetText("Enemies to mark, by name or npc id. Pick a mark, or A for any free one.")
+	markNote:SetText("Hold left Ctrl + left Shift and point at them: everyone on this list is marked as "
+		.. "the mouse goes over. Add by name or npc id, pick a mark in the row, or A for any free one. "
+		.. "Names can be edited: type over one and press Enter.")
+	y = y - 12
+	y = y - 12
 	y = y - 26
 
-	local ICON_SIZE, ICON_GAP = 18, 2
-	local KEY_WIDTH = 150
-	local PICKER_X = KEY_WIDTH + 16
+	local ICON_SIZE, ICON_GAP = 16, 2
+	local KEY_WIDTH = 126
+	local PICKER_X = KEY_WIDTH + 18
+	local DEL_X = PICKER_X + 9 * (ICON_SIZE + ICON_GAP) + 6
 
 	-- nine buttons: A, then the eight marks. get()/set() say which one is on.
 	local function iconPicker(parent, x, top, get, set)
 		local buttons = {}
+		-- the chosen one keeps a yellow frame and full colour, the rest fade
 		local function refresh()
 			for _, b in ipairs(buttons) do
-				if get() == b.icon then b.check:Show() else b.check:Hide() end
+				local on = get() == b.icon
+				if on then b.check:Show() else b.check:Hide() end
+				b.dim:SetAlpha(on and 1 or 0.4)
 			end
 		end
 		for i = 0, 8 do
@@ -297,21 +308,28 @@ function RLK:InitConfig()
 			b:SetPoint("TOPLEFT", x + i * (ICON_SIZE + ICON_GAP), top)
 			b.icon = i
 			if i == 0 then
-				local fs = b:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+				-- auto stands next to eight coloured marks, so it gets a frame
+				-- of its own and a bright letter
+				b:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8",
+					edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
+				b:SetBackdropColor(0.15, 0.15, 0.18, 1)
+				b:SetBackdropBorderColor(0.9, 0.75, 0.2, 1)
+				local fs = b:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 				fs:SetAllPoints()
 				fs:SetText("A")
+				fs:SetTextColor(1, 0.9, 0.3)
+				b.dim = fs
 			else
 				local tex = b:CreateTexture(nil, "ARTWORK")
 				tex:SetAllPoints()
 				tex:SetTexture(RLK.MARK_ICONS[i][1])
+				b.dim = tex
 			end
-			-- the one in use gets a yellow frame
-			b.check = b:CreateTexture(nil, "OVERLAY")
+			b.check = CreateFrame("Frame", nil, b)
 			b.check:SetPoint("TOPLEFT", -2, 2)
 			b.check:SetPoint("BOTTOMRIGHT", 2, -2)
-			b.check:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
-			b.check:SetBlendMode("ADD")
-			b.check:SetVertexColor(1, 0.82, 0)
+			b.check:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 2 })
+			b.check:SetBackdropBorderColor(1, 0.9, 0.2, 1)
 			b.check:Hide()
 			b:SetScript("OnClick", function()
 				set(b.icon)
@@ -329,18 +347,15 @@ function RLK:InitConfig()
 		return refresh
 	end
 
-	-- the new rule
-	local newIcon = 0
+	-- a new rule is just a name; its mark is picked in the row it becomes
 	local keyBox = CreateFrame("EditBox", uniqueName("Edit"), panel, "InputBoxTemplate")
 	keyBox:SetPoint("TOPLEFT", PAD + 6, y)
 	keyBox:SetWidth(KEY_WIDTH)
 	keyBox:SetHeight(20)
 	keyBox:SetAutoFocus(false)
-	local newPicker = iconPicker(panel, PICKER_X, y - 1,
-		function() return newIcon end, function(v) newIcon = v end)
 
 	local targetBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-	targetBtn:SetPoint("TOPLEFT", PAD + 6, y - 26)
+	targetBtn:SetPoint("LEFT", keyBox, "RIGHT", 10, 0)
 	targetBtn:SetWidth(70)
 	targetBtn:SetHeight(20)
 	targetBtn:SetText("Target")
@@ -359,7 +374,7 @@ function RLK:InitConfig()
 	addBtn:SetHeight(20)
 	addBtn:SetText("Add")
 	local function addRule()
-		local ok, why = self:AddRule(keyBox:GetText(), newIcon)
+		local ok, why = self:AddRule(keyBox:GetText(), 0)
 		if ok then
 			keyBox:SetText("")
 			keyBox:ClearFocus()
@@ -370,13 +385,12 @@ function RLK:InitConfig()
 	end
 	addBtn:SetScript("OnClick", addRule)
 	keyBox:SetScript("OnEnterPressed", addRule)
-	y = y - 54
+	y = y - 30
 
 	local listTop = y
 	local markRows = {}
 
 	function self:RefreshMarkRules()
-		newPicker()
 		local rules = db.markRules
 		for _, r in ipairs(markRows) do r:Hide() end
 		for i, rule in ipairs(rules) do
@@ -387,28 +401,44 @@ function RLK:InitConfig()
 				r = CreateFrame("Frame", nil, panel)
 				r:SetHeight(20)
 				r:SetWidth(390)
-				r.text = r:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-				r.text:SetPoint("LEFT", 6, 0)
-				r.text:SetWidth(KEY_WIDTH)
-				r.text:SetJustifyH("LEFT")
+				-- the key is editable in place; Enter or leaving the box saves
+				r.box = CreateFrame("EditBox", uniqueName("Edit"), r, "InputBoxTemplate")
+				r.box:SetPoint("LEFT", 6, 0)
+				r.box:SetWidth(KEY_WIDTH)
+				r.box:SetHeight(20)
+				r.box:SetAutoFocus(false)
+				local function commit(save)
+					local ok, why
+					if save then ok, why = self:SetRuleKey(r.index, r.box:GetText()) end
+					if why then self:Print(why) end
+					local rl = db.markRules[r.index]
+					-- an empty or taken key leaves the rule as it was
+					if rl and not ok then r.box:SetText(tostring(rl.key)) end
+					r.box:ClearFocus()
+				end
+				r.box:SetScript("OnEnterPressed", function() commit(true) end)
+				r.box:SetScript("OnEditFocusLost", function() commit(true) end)
+				r.box:SetScript("OnEscapePressed", function() commit(false) end)
 				r.del = CreateFrame("Button", nil, r, "UIPanelButtonTemplate")
-				r.del:SetPoint("LEFT", PICKER_X + 9 * (ICON_SIZE + ICON_GAP) + 6, 0)
-				r.del:SetWidth(44)
-				r.del:SetHeight(18)
-				r.del:SetText("Del")
+				r.del:SetPoint("LEFT", DEL_X, 0)
+				r.del:SetWidth(20)
+				r.del:SetHeight(20)
+				r.del:SetText("-")
+				r.del:SetScript("OnClick", function()
+					self:RemoveRule(r.index)
+					self:RefreshMarkRules()
+				end)
 				r.rule = rule -- the picker below reads it right away
 				r.refreshPicker = iconPicker(r, PICKER_X, 1,
 					function() return r.rule and r.rule.icon end,
 					function(v) if r.rule then r.rule.icon = v end end)
 				markRows[i] = r
 			end
+			r.index = i
 			r:ClearAllPoints()
 			r:SetPoint("TOPLEFT", PAD, listTop - (i - 1) * 22)
-			r.text:SetText(type(rule.key) == "number" and ("npc " .. rule.key) or tostring(rule.key))
-			r.del:SetScript("OnClick", function()
-				self:RemoveRule(i)
-				self:RefreshMarkRules()
-			end)
+			r.box:SetText(tostring(rule.key))
+			r.box:SetCursorPosition(0)
 			r.refreshPicker()
 			r:Show()
 		end
