@@ -7,6 +7,8 @@
 Tools for the raid leader: a checklist of every raid buff and debuff - who can bring it and whether it is up -<br>
 marking a pack by pointing at it, and a reminder when a boss is pulled without master loot.
 
+<sub>An addon for World of Warcraft 3.3.5a (Wrath of the Lich King) — Warmane, Icecrown, Lordaeron and other 3.3.5 realms.</sub>
+
 </div>
 
 ## Raid checklist
